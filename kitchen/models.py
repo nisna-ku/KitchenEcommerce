@@ -145,7 +145,29 @@ class WishList(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE) 
 
     def __str__(self):
-        return self.product       
+        return self.product  
+
+class ReviewModel(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+
+    rating = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 rating
+
+    review_text = models.TextField(blank=True, null=True)
+
+    images = models.ImageField(upload_to="review_images/", blank=True, null=True)
+
+    verified_purchase = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name} ({self.rating} stars)"        
 
 
 

@@ -306,15 +306,7 @@
 
         <div id="description" class="tab-content active">
             <h3>Product Description</h3>
-            <p>Our Premium Wireless Bluetooth Headphones deliver an exceptional audio experience with studio-quality
-                sound. The active noise cancellation technology blocks out ambient noise, allowing you to focus on your
-                music, podcasts, or calls without distraction.</p>
-            <p>With a 30-hour battery life and quick charging capability (just 10 minutes of charging provides 3 hours
-                of playback), these headphones are perfect for travel, commuting, or all-day use. The premium memory
-                foam ear cushions ensure comfort even during extended listening sessions.</p>
-            <p>The built-in microphone with voice assistant support lets you control your music, make calls, and access
-                Siri, Google Assistant, or Alexa with the touch of a button. The foldable design makes these headphones
-                easy to carry in the included travel case.</p>
+            <p>{{product.description}}</p>
         </div>
 
         <div id="specifications" class="tab-content">
@@ -335,27 +327,27 @@
 
         <div id="reviews" class="tab-content">
             <h3>Customer Reviews</h3>
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <div style="color: #ffc107; margin-right: 10px;">★★★★★</div>
-                    <div style="font-weight: bold;">Amazing sound quality!</div>
-                </div>
-                <div style="font-size: 14px; color: #666; margin-bottom: 5px;">By Michael T. on Feb 12, 2025</div>
-                <p>I've tried many headphones over the years, but these are by far the best. The sound quality is
-                    amazing, and the noise cancellation works great even in noisy environments. Battery life is
-                    impressive too.</p>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <div style="color: #ffc107; margin-right: 10px;">★★★☆☆</div>
-                    <div style="font-weight: bold;">Good but not perfect</div>
-                </div>
-                <div style="font-size: 14px; color: #666; margin-bottom: 5px;">By Sarah L. on Feb 3, 2025</div>
-                <p>The sound quality is good and they're comfortable to wear, but I expected better noise cancellation
-                    for this price. Battery life seems to be less than advertised in my experience.</p>
-            </div>
+        
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                            <div style="color: #ffc107; margin-right: 10px;">
+                                {% for _ in ""|ljust:review.rating %}★{% endfor %}
+                            </div>
+                            <div style="font-weight: bold;">{{ review.review_text }}</div>
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 5px;">
+                            By {{ review.user.username }} on {{ review.created_at|date:"F d, Y" }}
+                        </div>
+                        <p>{{ review.review_text }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet. Be the first to review this product!</p>
+            {% endif %}
         </div>
+        
     </div>
     </form>
 </div>

@@ -2,17 +2,21 @@ from django.shortcuts import render,redirect,get_object_or_404
 
 from django.views.generic import View
 
-from kitchen.models import User,Product,Cart,Order,OrderItem,Category,WishList
+from kitchen.models import User,Product,Cart,Order,OrderItem,Category,WishList,ReviewModel
 
 from django.db.models import Q,Sum
 
-from kitchen.forms import SignupForm,SignInForm,CategoryForm,ProductForm,OrderForm
+from kitchen.forms import SignupForm,SignInForm,CategoryForm,ProductForm,OrderForm,ReviewForm
 
 from django.contrib.auth import authenticate,login,logout
 
 from django.contrib import messages
 
 from django.utils import timezone
+
+from django.utils.decorators import method_decorator
+
+from kitchen.decorators import signin_required
 
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
@@ -86,7 +90,9 @@ class SignOutView(View):
 
         logout(request)
 
-        return redirect('login')  
+        return redirect('login') 
+
+@method_decorator(signin_required,name='dispatch')     
 
 class AdminDashBoardView(View):
 
@@ -123,7 +129,7 @@ class AdminDashBoardView(View):
 
         return render(request,self.template_name,{'product_count':product_count,'cat_count':cat_count,'today_order_count':today_order_count,'monthly_revenue':monthly_revenue})  
     
-
+@method_decorator(signin_required,name='dispatch')
 class AllOrdersView(View):
 
     template_name = 'all_order_details.html'
@@ -156,6 +162,7 @@ class IndexView(View):
 
         return render(request,self.template_name) 
 
+@method_decorator(signin_required,name='dispatch')
 
 class CategoryAddview(View):
 
@@ -180,7 +187,9 @@ class CategoryAddview(View):
             return redirect('add-category') 
         
         return render(request,self.template_name,{'form':form_instance})
-    
+
+@method_decorator(signin_required,name='dispatch')
+   
 class ProductAddView(View):
 
     template_name = 'product_add.html'
@@ -205,6 +214,8 @@ class ProductAddView(View):
             return redirect('add-product')
 
         return render(request,self.template_name,{'form':form_instance}) 
+    
+@method_decorator(signin_required,name='dispatch')
 
 class ProductListView(View):
 
@@ -225,7 +236,8 @@ class ProductListView(View):
             products = Product.objects.all()  # Fetch all products
 
         return render(request, self.template_name, {'products': products})
-
+    
+@method_decorator(signin_required,name='dispatch')    
 class ProductUpdateView(View):
 
     template_name = 'product_update.html'
@@ -254,6 +266,7 @@ class ProductUpdateView(View):
 
         return render(request, self.template_name, {'form': form_instance, 'product': product})
     
+@method_decorator(signin_required,name='dispatch')
 class ProductDeleteView(View):
 
     template_name = 'product_confirm_delete.html'
@@ -321,7 +334,11 @@ class ProductDetailView(View):
         
         product = get_object_or_404(Product, id=id)
 
-        return render(request, self.template_name, {'product': product})
+        product_review = ReviewModel.objects.filter(product=product)
+
+        return render(request, self.template_name, {'product': product,'reviews':product_review})
+    
+@method_decorator(signin_required,name='dispatch')
 
 class AddToCartView(View):
 
@@ -354,7 +371,8 @@ class AddToCartView(View):
         messages.success(request, "Product added to cart successfully!")
 
         return redirect('index')
-    
+
+@method_decorator(signin_required,name='dispatch')
 class CartSummaryView(View):
 
     template_name  ='cart_summary.html'
@@ -368,6 +386,7 @@ class CartSummaryView(View):
         return render(request,self.template_name,{'data':qs,'basket_total': basket_total}) 
 
     
+@method_decorator(signin_required,name='dispatch')
 class CartItemDeleteView(View):
 
 
@@ -379,6 +398,7 @@ class CartItemDeleteView(View):
 
         return redirect('cart-summary')  
     
+@method_decorator(signin_required,name='dispatch')
 class PlaceOrderView(View):
 
     template_name = 'place_order.html'
@@ -502,6 +522,7 @@ class OrderSuccessMessage(View):
 
         return render(request,self.template_name) 
 
+@method_decorator(signin_required,name='dispatch')
 class OrderSummaryView(View):
 
     template_name = "order_summary.html"
@@ -513,6 +534,7 @@ class OrderSummaryView(View):
         return render(request,self.template_name,{'orders':qs})  
 
 
+@method_decorator(signin_required,name='dispatch')
 class AddWishlistView(View):
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -534,6 +556,7 @@ class AddWishlistView(View):
             return JsonResponse({"added": True})  
 
 
+@method_decorator(signin_required,name='dispatch')
 class WishlistView(View):
     template_name = 'wishlist.html'
 
@@ -563,6 +586,50 @@ class RemoveFromWishlistView(View):
             return JsonResponse({"removed": True, "wishlist_count": wishlist_count})
 
         return JsonResponse({"removed": False, "wishlist_count": WishList.objects.filter(user=request.user).count()})
+    
+
+@method_decorator(signin_required,name='dispatch')
+class AddReviewView(View):
+
+    template_name = 'add_review.html'
+
+    form_class =  ReviewForm
+
+    def get(self,request,*args,**kwargs):
+
+        id = kwargs.get('pk')
+
+        qs = Product.objects.get(id=id)
+
+        form_instance = self.form_class() 
+
+        return render(request,self.template_name,{'form':form_instance,'product':qs}) 
+
+    def post(self,request,*args,**kwargs):
+
+        id = kwargs.get('pk') 
+
+        product = Product.objects.get(id=id)
+
+        form_instance = self.form_class(request.POST)
+
+        if form_instance.is_valid():
+
+            review = form_instance.save(commit=False)
+
+            review.user = request.user
+
+            review.product = product
+
+            review.verified_purchase = True  
+            
+            review.save()
+
+            messages.success(request, "Your review has been submitted!")
+
+            return redirect('product-details', pk=product.id)
+        
+        return render(request,self.template_name,{'form':form_instance})
 
 
 

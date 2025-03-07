@@ -1,0 +1,330 @@
+{%extends 'base.html'%}
+{%block main_block%}
+
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f6f8fd;
+      padding: 60px 20px;
+      color: #2c3e50;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 50px;
+      font-weight: 700;
+      font-size: 42px;
+      color: #2c3e50;
+      position: relative;
+      padding-bottom: 15px;
+      letter-spacing: -0.5px;
+    }
+    
+    h1:after {
+      content: "";
+      position: absolute;
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 3px;
+    }
+    
+    .products {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    
+    @media (max-width: 960px) {
+      .products {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .products {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .product-card {
+      background-color: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(108, 92, 231, 0.08);
+      transition: all 0.4s ease;
+      position: relative;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(108, 92, 231, 0.15);
+    }
+    
+    .product-image {
+      position: relative;
+      height: 240px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+    }
+    
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform 0.5s ease;
+      padding: 20px;
+    }
+    
+    .product-card:hover .product-image img {
+      transform: scale(1.08);
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+    }
+    
+    .product-details {
+      padding: 30px;
+      position: relative;
+    }
+    
+    .product-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #2c3e50;
+      line-height: 1.4;
+      transition: color 0.3s ease;
+    }
+    
+    .product-card:hover .product-name {
+      color: #6c5ce7;
+    }
+    
+    .product-price {
+      display: inline-block;
+      font-size: 24px;
+      font-weight: 700;
+      color: #6c5ce7;
+      margin-bottom: 15px;
+    }
+    
+    .product-price:before {
+      content: "$";
+      font-size: 18px;
+      font-weight: 500;
+      vertical-align: top;
+      margin-right: 2px;
+      opacity: 0.8;
+    }
+    
+    .product-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .stars {
+      color: #fed330;
+      font-size: 16px;
+      margin-right: 10px;
+      letter-spacing: 2px;
+    }
+    
+    .rating-count {
+      color: #95a5a6;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .buy-button {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 15px rgba(108, 92, 231, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .buy-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+      background: linear-gradient(135deg, #5649c0 0%, #9183fa 100%);
+    }
+    .red {
+    color: red;
+}
+
+    
+    .wishlist {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid #f0f0f0;
+      color: #e0e0e0;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .wishlist:hover {
+      color: #e74c3c;
+      transform: scale(1.1);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #95a5a6;
+    }
+    
+    .product-meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .product-meta i {
+      color: #6c5ce7;
+    }
+  </style>
+
+  <div class="container">
+    <h1>Featured Collection</h1>
+    <div class="products">
+    {%for p in products%}
+    
+    
+      <!-- Product 1 -->
+      <div class="product-card">
+        <div class="product-image" >
+          <div class="product-badge">New</div>
+
+          {%if p.image%}
+          <a href="{%url 'product-details' p.id%}">
+
+          <img src="{{p.image.url}}" alt="Wireless Headphones" style="width: 350px; height: 300px;"></a>
+          {%endif%}
+          <div class="wishlist">
+            <a href="javascript:void(0);" class="wishlist-icon" data-product-id="{{ p.id }}">
+              <i class="far fa-heart {% if p in user.wishlist.product.all %}red fas{% else %}far{% endif %}"></i>
+            </a>
+        </div>
+        
+        
+        
+        
+        </div>
+        <div class="product-details">
+          <h2 class="product-name">{{p.name}}</h2>
+          <div class="product-rating">
+            <div class="stars">★★★★☆</div>
+            <div class="rating-count">(245 reviews)</div>
+          </div>
+          <div class="product-price">{{p.price}}</div>
+          <div class="product-meta">
+            {%if p.stock > 0%}
+            <span><i class="fas fa-check-circle"></i> In Stock</span>
+            {%else%}
+            <span><i class="fas fa-check-circle"></i> Out Stock</span>
+            {%endif%}
+            <span><i class="fas fa-bolt"></i> Fast Shipping</span>
+          </div>
+          <!-- <button class="buy-button">
+            <i class="fas fa-shopping-cart"></i>
+            Add to Cart
+          </button> -->
+        </div>
+      </div>
+
+    
+    {%endfor%}
+  </div></div>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+    const wishlistIcons = document.querySelectorAll(".wishlist-icon");
+
+    wishlistIcons.forEach(icon => {
+        icon.addEventListener("click", function () {
+            const productId = this.getAttribute("data-product-id");
+            const heartIcon = this.querySelector("i");
+
+            fetch(`/wishlist/add/${productId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "Content-Type": "application/json"
+                },
+                credentials: "include"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.added) {
+                    heartIcon.classList.add("red"); // Turn red when added
+                    heartIcon.classList.replace("far", "fas"); // Change icon to solid heart
+                } else if (data.removed) {
+                    heartIcon.classList.remove("red"); // Remove red when removed
+                    heartIcon.classList.replace("fas", "far"); // Change icon back to outline
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+    function getCSRFToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value;
+    }
+});
+
+</script>
+
+
+
+
+{%endblock%}

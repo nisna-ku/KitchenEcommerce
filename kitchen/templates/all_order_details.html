@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Orders</title>
+    <style>
+        /* Reset some basic styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fc;
+            color: #333;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #3498db;
+            color: white;
+            font-size: 1rem;
+        }
+
+        table td {
+            font-size: 1rem;
+        }
+
+        .order-items {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .order-items li {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .status {
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .status.processing {
+            color: #f39c12;
+        }
+
+        .status.completed {
+            color: #27ae60;
+        }
+
+        .status.cancelled {
+            color: #e74c3c;
+        }
+
+        .total-amount {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.9rem;
+            }
+
+            table th, table td {
+                padding: 10px;
+            }
+
+            .order-items li {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>All Orders</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Order Items</th>
+                <th>Total Amount</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer.username }}</td>
+                    <td>
+                        <ul class="order-items">
+                            {% for item in order.orderitems.all %}
+                                <li>
+                                    <span>{{ item.product_object.name }} (Qty: {{ item.quantity }}) - ${{ item.price }} 
+                                        <strong>Total: ${{ item.item_total }}</strong>
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td class="total-amount">
+                        ${{ order.total_amount }}
+                    </td>
+                    <td class="status {% if order.status == 'processing' %}processing{% elif order.status == 'completed' %}completed{% else %}cancelled{% endif %}">
+                        {{ order.status|capfirst }}
+                    </td>
+                   
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

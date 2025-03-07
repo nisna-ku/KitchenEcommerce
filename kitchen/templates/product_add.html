@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block main_block %}
+<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh;margin-top: 80px;">
+
+<div class="card" style="width: 800px; justify-content: center;">
+    <h1>Add Products</h1>
+    <form id="productForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}  
+
+        <div class="buttons">
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+    
+    <div id="successMessage" class="success-message" style="display: none;">
+        product has been successfully added!
+    </div>
+</div></div>
+{% endblock %}
+

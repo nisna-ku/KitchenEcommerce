@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block main_block %}
+<div class="product-manager-container">
+    <div class="product-header">
+        <h1>Product List</h1>
+        <a href="{% url 'add-product' %}" class="btn-add-product">
+            <i class="fas fa-plus-circle"></i> Add New Product
+        </a>
+    </div>
+
+    {% if products %}
+    <div class="product-table-container">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td class="product-name">{{ product.name }}</td>
+                    <td class="product-description">{{ product.description|truncatechars:100 }}</td>
+                    <td class="product-image">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="no-image">No image</div>
+                        {% endif %}
+                    </td>
+                    <td class="product-actions">
+                        <a href="{% url 'update-product' product.pk %}" class="btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'delete-product' product.pk %}" class="btn-delete">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="no-products">
+        <div class="no-products-icon">
+            <i class="fas fa-box-open"></i>
+        </div>
+        <p>No products found. Add your first product to get started.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Product Manager Styles */
+.product-manager-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.product-header h1 {
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+}
+
+.btn-add-product {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-add-product:hover {
+    background-color: #45a049;
+}
+
+.product-table-container {
+    overflow-x: auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table thead {
+    background-color: #f5f5f5;
+}
+
+.product-table th,
+.product-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.product-table th {
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.product-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.product-description {
+    color: #666;
+    max-width: 300px;
+}
+
+.product-image {
+    width: 100px;
+}
+
+.product-image img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eaeaea;
+}
+
+.no-image {
+    width: 100px;
+    height: 100px;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.product-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit,
+.btn-delete {
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-edit {
+    background-color: #2196F3;
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #0b7dda;
+}
+
+.btn-delete {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #d32f2f;
+}
+
+.no-products {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.no-products-icon {
+    font-size: 60px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.no-products p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .product-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .product-table th,
+    .product-table td {
+        padding: 10px;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

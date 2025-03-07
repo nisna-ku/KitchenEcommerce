@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block main_block %}
+<style>
+    .empty-wishlist-message {
+    text-align: center;
+    font-size: 18px;
+    color: #555;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+</style>
+
+
+<div class="wishlist-page">
+    <div class="wishlist-header">
+        <h2>My Wishlist</h2>
+        <p class="wishlist-count">
+            <span id="wishlist-item-count">{{ wishlist_products|length }}</span> 
+            Items in Wishlist
+        </p>
+    </div>
+
+    {% if wishlist_products %}
+    <div class="wishlist-container">
+        {% for product in wishlist_products %}
+        <div class="wishlist-item" data-product-id="{{ product.id }}">
+            <div class="wishlist-item-image">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% if product.is_on_sale %}
+                <span class="sale-badge">Sale</span>
+                {% endif %}
+            </div>
+            
+            <div class="wishlist-item-details">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                
+                <div class="wishlist-item-footer">
+                    <div class="product-pricing">
+                        {% if product.is_on_sale %}
+                        <span class="original-price">${{ product.original_price }}</span>
+                        <span class="sale-price">${{ product.price }}</span>
+                        {% else %}
+                        <span class="current-price">${{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="wishlist-actions">
+                        <button class="btn-add-to-cart" data-product-id="{{ product.id }}">
+                            <a href="{% url 'product-details' product.id %}" class="btn-view-product">
+                                <i class="icon-eye"></i> View Product
+                            </a>
+                                                    </button>
+                        <button class="btn-remove-wishlist" data-product-id="{{ product.id }}">
+                            <i class="icon-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-wishlist-message">
+        <p>Your Wishlist is currently empty.</p>
+    </div>
+{% endif %}
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const removeButtons = document.querySelectorAll(".btn-remove-wishlist");
+    const wishlistItemCount = document.getElementById("wishlist-item-count");
+
+    function updateWishlistCount(count) {
+        wishlistItemCount.textContent = count;
+    }
+
+    function handleRemoveFromWishlist(productId) {
+        fetch(`/wishlist/remove/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "Content-Type": "application/json"
+            },
+            credentials: "include"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.removed) {
+                document.querySelector(`.wishlist-item[data-product-id="${productId}"]`).remove();
+                updateWishlistCount(data.wishlist_count);
+                showNotification("Item removed from wishlist", "success");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    removeButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const productId = this.getAttribute("data-product-id");
+            handleRemoveFromWishlist(productId);
+        });
+    });
+
+    function getCSRFToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value;
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.classList.add('notification', type);
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 3000);
+    }
+});
+
+</script>
+
+<style>
+.wishlist-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.wishlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+}
+
+.wishlist-header h2 {
+    color: #333;
+    font-size: 24px;
+}
+
+.wishlist-item {
+    display: flex;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.wishlist-item:hover {
+    transform: translateY(-5px);
+}
+
+.wishlist-item-image {
+    position: relative;
+    width: 250px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+}
+
+.wishlist-item-image img {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+}
+
+.sale-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff6b6b;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.wishlist-item-details {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.product-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.wishlist-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.product-pricing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 14px;
+}
+
+.sale-price {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+.current-price {
+    color: #333;
+    font-weight: bold;
+}
+
+.wishlist-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-add-to-cart, .btn-remove-wishlist {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-add-to-cart {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-remove-wishlist {
+    background-color: #f44336;
+    color: white;
+}
+
+.empty-wishlist {
+    text-align: center;
+    padding: 50px 0;
+}
+
+.empty-wishlist img {
+    max-width: 300px;
+    margin-bottom: 20px;
+}
+
+.btn-explore {
+    display: inline-block;
+    background-color: #2196F3;
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: white;
+    padding: 15px;
+    border-radius: 4px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.notification.hide {
+    opacity: 0;
+}
+</style>
+{% endblock %}

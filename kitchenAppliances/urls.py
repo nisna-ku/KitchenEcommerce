@@ -47,6 +47,16 @@ urlpatterns = [
     path("wishlist/", views.WishlistView.as_view(), name="wishlist"),
     path('wishlist/remove/<int:pk>/', views.RemoveFromWishlistView.as_view(), name='remove_from_wishlist'),
     path('product/<int:pk>/add-review/',views.AddReviewView.as_view(), name='add_review'),
+    path('delivery/index/',views.DeliveryPersonIndexView.as_view(),name='delivery-index'),
+    path('delivery/profile/',views.DeliveryProfileCreateView.as_view(),name='delivery-profile'),
+    path('deliver/<int:pk>/update/',views.DeliveryProfileUpdateView.as_view(),name='delivery-update'),
+
+    path("delivery-orders/", views.DeliveryOrderListView.as_view(), name="delivery_orders"),
+    path('update-order-status/<int:order_id>/', views.update_order_status, name='update_order_status'),
+    path("delivery-history/", views.delivery_history, name="delivery-history"),
+
+
+
 
 
 

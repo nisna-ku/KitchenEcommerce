@@ -22,6 +22,23 @@ class User(AbstractUser):
 
     phone = models.CharField(max_length=15, blank=True, null=True)
 
+class DeliveryPerson(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='delivery_profile')
+
+    phone_number_1 = models.CharField(max_length=15)
+
+    phone_number_2 = models.CharField(max_length=15, blank=True, null=True)
+
+    address = models.TextField()
+
+    location = models.CharField(max_length=255) 
+
+    
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.location}"    
+
 
 # Category Model
 class Category(models.Model):
@@ -90,6 +107,9 @@ class Order(models.Model):
     address=models.TextField(null=False, blank=False)
 
     phone=models.CharField(max_length=20, null=False, blank=False)
+
+    location = models.CharField(max_length=50,null=True,blank=True)
+
     
     PAYMENT_OPTIONS=(
         ("COD","COD"),
@@ -101,6 +121,17 @@ class Order(models.Model):
     rzp_order_id=models.CharField(max_length=100, null=True)
 
     is_paid=models.BooleanField(default=False)
+
+    STATUS_CHOICES = [('Pending','Pending'),
+                      ('Confirmed','Confirmed'),
+                      ('Out of Delivery','Out of Delivery'),
+                      ('Delivered','Delivered')]
+    
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,null=True,blank=True,default='Pending')
+
+    
+    delivery_person = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="deliveries") 
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -167,7 +198,17 @@ class ReviewModel(models.Model):
 
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name} ({self.rating} stars)"        
+        return f"{self.user.username} - {self.product.name} ({self.rating} stars)" 
+    
+class DeliveryAssignment(models.Model):
+
+    """Stores the delivery person assigned to an order."""
+    
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="delivery_assignment")
+    delivery_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="assigned_orders")
+    delivered_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)    
+    
+           
 
 
 

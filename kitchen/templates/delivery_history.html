@@ -1,0 +1,65 @@
+{%extends 'delivery_base.html'%}
+{%block delivery_block%}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+
+
+<h2>Delivery History for {{ request.user.username }}</h2>
+
+<table>
+    <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Address</th>
+        <th>Phone</th>
+        <th>Payment Method</th>
+        <th>Status</th>
+        <th>Delivered At</th>
+    </tr>
+    {% for order in delivered_orders %}
+    <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.customer.username }}</td>
+        <td>{{ order.address }}</td>
+        <td>{{ order.phone }}</td>
+        <td>{{ order.payment_method }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.updated_at }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7" style="text-align: center;">No delivery history available.</td>
+    </tr>
+    {% endfor %}
+</table>
+{%endblock%}

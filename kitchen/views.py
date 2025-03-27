@@ -2,11 +2,11 @@ from django.shortcuts import render,redirect,get_object_or_404
 
 from django.views.generic import View
 
-from kitchen.models import User,Product,Cart,Order,OrderItem,Category,WishList,ReviewModel
+from kitchen.models import User,Product,Cart,Order,OrderItem,Category,WishList,ReviewModel,DeliveryPerson,DeliveryAssignment
 
 from django.db.models import Q,Sum
 
-from kitchen.forms import SignupForm,SignInForm,CategoryForm,ProductForm,OrderForm,ReviewForm
+from kitchen.forms import SignupForm,SignInForm,CategoryForm,ProductForm,OrderForm,ReviewForm,DeliveryForm
 
 from django.contrib.auth import authenticate,login,logout
 
@@ -75,12 +75,20 @@ class SignInView(View):
             uname = form_instance.cleaned_data.get('username')
             pwd = form_instance.cleaned_data.get('password')
             user_object = authenticate(username=uname, password=pwd)
+            
             if user_object:
                 login(request, user_object)
                 if user_object.is_staff:
                     return redirect('operations')
                 
-                return redirect('index')
+                elif user_object.role == "delivery_person":
+                    return redirect('delivery-index')
+
+                
+                else:
+                
+                    return redirect('index')
+                
         return render(request, self.template_name, {'form': form_instance})
 
 
@@ -127,6 +135,7 @@ class AdminDashBoardView(View):
 
 
 
+
         return render(request,self.template_name,{'product_count':product_count,'cat_count':cat_count,'today_order_count':today_order_count,'monthly_revenue':monthly_revenue})  
     
 @method_decorator(signin_required,name='dispatch')
@@ -136,7 +145,7 @@ class AllOrdersView(View):
 
     def get(self, request, *args, **kwargs):
         # Retrieve all orders with related OrderItems and customer
-        all_orders = Order.objects.prefetch_related('orderitems').all()
+        all_orders = Order.objects.prefetch_related('orderitems').order_by('-created_at')
 
         # Calculate the total amount for each order
         for order in all_orders:
@@ -150,6 +159,27 @@ class AllOrdersView(View):
 
         # Render the template
         return render(request, self.template_name, context)
+    
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.contrib import messages
+from .models import Order
+
+class OrderStatusUpdateView(View):
+    def post(self, request, order_id, *args, **kwargs):
+        order = get_object_or_404(Order, id=order_id)
+        new_status = request.POST.get('status')
+
+        if new_status in ['Pending', 'Confirmed', 'Out of Delivery', 'Delivered']:
+            order.status = new_status
+            order.save()
+            messages.success(request, f"Order {order.id} status updated to {new_status}.")
+        else:
+            messages.error(request, "Invalid status selected.")
+
+        return redirect('all-orders')
+    
+        
 
 
 
@@ -423,6 +453,8 @@ class PlaceOrderView(View):
 
             form_instance.instance.customer = request.user   #here instance refer to the model given in model form
 
+            form_instance.instance.location = request.POST.get('location')
+
             order_object = form_instance.save()
 
             cart_items = Cart.objects.filter(owner=request.user,is_order_placed = False)
@@ -502,6 +534,8 @@ class PaymentVerificationsView(View):
 
             # Update order status
             Order.objects.filter(rzp_order_id=rzp_order_id).update(is_paid=True)
+            Order.objects.filter(rzp_order_id=rzp_order_id).update(status='Confirmed')
+
 
             # Send JSON response with redirect URL
             return JsonResponse({"status": "success", "redirect_url": reverse('order-success')})
@@ -630,6 +664,166 @@ class AddReviewView(View):
             return redirect('product-details', pk=product.id)
         
         return render(request,self.template_name,{'form':form_instance})
+    
+
+    #  DELIVERY PERSON 
+
+
+class DeliveryPersonIndexView(View):
+
+    template_name = 'delivery_index.html'
+
+    def get(self,request,*args,**kwargs):
+
+
+        return render(request,self.template_name)
+    
+
+class DeliveryProfileCreateView(View):
+
+    template_name='profile.html'
+
+    form_class = DeliveryForm 
+
+    def get(self,request,*args,**kwargs):
+
+        form_instance = self.form_class()
+
+        return render(request,self.template_name,{'form':form_instance})
+    
+    def post(self,request,*args,**kwargs):
+
+        form_instance=self.form_class(request.POST)
+
+        if form_instance.is_valid():
+            delivery_person = form_instance.save(commit=False)  # Create instance but don't save yet
+            delivery_person.user = request.user  # Assign the logged-in user
+            delivery_person.save()  # Now save the instance
+
+            return redirect('delivery-index')
+
+        return render(request, self.template_name, {'form': form_instance})
+    
+class DeliveryProfileUpdateView(View):
+
+
+    template_name='profile_update.html'
+
+    form_class = DeliveryForm 
+
+    def get(self,request,*args,**kwargs):
+
+        id = kwargs.get('pk')
+
+        qs = DeliveryPerson.objects.get(user_id=id)
+
+        form_instance = self.form_class(instance=qs)
+
+        return render(request,self.template_name,{'form':form_instance})
+    
+    def post(self,request,*args,**kwargs):
+        id = kwargs.get('pk')
+
+        qs = DeliveryPerson.objects.get(user_id=id)
+
+        form_instance=self.form_class(request.POST,instance=qs)
+
+        if form_instance.is_valid():
+            delivery_person = form_instance.save(commit=False)  # Create instance but don't save yet
+            delivery_person.user = request.user  # Assign the logged-in user
+            delivery_person.save()  # Now save the instance
+
+            return redirect('delivery-index')
+
+        return render(request, self.template_name, {'form': form_instance})
+    
+
+from django.shortcuts import render, get_object_or_404
+from django.views import View
+from .models import Order, DeliveryPerson
+
+class DeliveryOrderListView(View):
+    template_name = 'delivery_details.html'
+
+    def get(self, request, *args, **kwargs):
+        # Ensure the user is a delivery person
+        if not hasattr(request.user, 'delivery_profile'):
+            return render(request, self.template_name, {'orders': []})
+
+        delivery_person = request.user.delivery_profile  
+
+        # Fetch orders where status is 'Out of Delivery' and location matches
+        orders = Order.objects.filter(status="Out of Delivery", location=delivery_person.location)
+
+        # print(orders)
+
+        return render(request, self.template_name, {'orders': orders})
+    
+
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from django.urls import reverse
+from .models import Order, DeliveryAssignment
+
+@login_required
+def update_order_status(request, order_id):
+    """Update the order status to 'Delivered' and assign the delivery person."""
+    
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == "POST":
+        person_id = request.POST.get("delivery_person")
+
+        if not person_id:
+            return HttpResponseForbidden("❌ Delivery person ID is missing.")
+
+        try:
+            delivery_person = User.objects.get(id=person_id)
+            order.delivery_person = delivery_person  # Assign the delivery person
+            order.status = "Delivered"
+            order.save()
+            print(f"✅ Delivery person assigned: {delivery_person.username}")
+        except User.DoesNotExist:
+            print("❌ Error: Delivery person not found!")
+            return HttpResponseForbidden("Delivery person does not exist.")
+
+        return redirect(reverse("delivery_orders"))  # ✅ Ensure this URL name is correct
+
+    return redirect(reverse("delivery_orders"))  # In case of GET request, redirect back
+
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Order
+
+@login_required
+def delivery_history(request):
+    """Get all delivered orders assigned to the logged-in delivery person."""
+    
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden("You must be logged in to view this page.")
+
+    # Get orders delivered by the logged-in delivery person
+    delivered_orders = Order.objects.filter(
+        delivery_person=request.user,
+        status="Delivered"
+    ).order_by("-updated_at")  # Show latest first
+
+    context = {
+        "delivered_orders": delivered_orders
+    }
+    return render(request, "delivery_history.html", context)
+
+
+
+
+
+
+
 
 
 

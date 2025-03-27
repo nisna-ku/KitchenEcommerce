@@ -1,156 +1,158 @@
-{%extends 'adminBase.html'%}
-{%block main2_block%}
-    <style>
-        /* Reset some basic styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+{% extends 'adminBase.html' %}
+{% block main2_block %}
+<style>
+    /* Reset some basic styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-        body {
-            background-color: #f4f7fc;
-            color: #333;
-            padding: 20px;
-        }
+    body {
+        background-color: #f4f7fc;
+        color: #333;
+        padding: 20px;
+    }
 
-        h1 {
-            font-size: 2.5rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+    h1 {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+    }
 
+    table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    table th, table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #3498db;
+        color: white;
+        font-size: 1rem;
+    }
+
+    table td {
+        font-size: 1rem;
+    }
+
+    .order-items {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .order-items li {
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+    }
+
+    .total-amount {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .status-select {
+        padding: 6px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #3498db;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #2980b9;
+    }
+
+    @media (max-width: 768px) {
         table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
         }
 
         table th, table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #3498db;
-            color: white;
-            font-size: 1rem;
-        }
-
-        table td {
-            font-size: 1rem;
-        }
-
-        .order-items {
-            list-style-type: none;
-            padding: 0;
+            padding: 10px;
         }
 
         .order-items li {
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: #7f8c8d;
+            font-size: 0.85rem;
         }
+    }
+</style>
 
-        .status {
-            font-weight: bold;
-            text-transform: capitalize;
-        }
+<h1>All Orders</h1>
 
-        .status.processing {
-            color: #f39c12;
-        }
-
-        .status.completed {
-            color: #27ae60;
-        }
-
-        .status.cancelled {
-            color: #e74c3c;
-        }
-
-        .total-amount {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #3498db;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        @media (max-width: 768px) {
-            table {
-                font-size: 0.9rem;
-            }
-
-            table th, table td {
-                padding: 10px;
-            }
-
-            .order-items li {
-                font-size: 0.85rem;
-            }
-        }
-    </style>
-
-
-    <h1>All Orders</h1>
-
-    <table>
-        <thead>
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer Name</th>
+            <th>Order Items</th>
+            <th>Total Amount</th>
+            <th>Order Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
             <tr>
-                <th>Order ID</th>
-                <th>Customer Name</th>
-                <th>Order Items</th>
-                <th>Total Amount</th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.customer.username }}</td>
-                    <td>
-                        <ul class="order-items">
-                            {% for item in order.orderitems.all %}
-                                <li>
-                                    <span>{{ item.product_object.name }} (Qty: {{ item.quantity }}) - ${{ item.price }} 
-                                        <strong>Total: ${{ item.item_total }}</strong>
-                                    </span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </td>
-                    <td class="total-amount">
-                        ${{ order.total_amount }}
-                    </td>
-                    <td class="status {% if order.status == 'processing' %}processing{% elif order.status == 'completed' %}completed{% else %}cancelled{% endif %}">
-                        {{ order.status|capfirst }}
-                    </td>
-                   
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                <td>{{ order.id }}</td>
+                <td>{{ order.customer.username }}</td>
+                <td>
+                    <ul class="order-items">
+                        {% for item in order.orderitems.all %}
+                            <li>
+                                <span>{{ item.product_object.name }} (Qty: {{ item.quantity }}) - ${{ item.price }} 
+                                    <strong>Total: ${{ item.item_total }}</strong>
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td class="total-amount">${{ order.total_amount }}</td>
 
-{%endblock%}
+                <!-- Form to update order status -->
+                <td>
+                    <form method="POST" action="{% url 'update_order_status' order.id %}">
+                        {% csrf_token %}
+                        <select name="status" class="status-select">
+                            <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Confirmed" {% if order.status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="Out of Delivery" {% if order.status == 'Out of Delivery' %}selected{% endif %}>Out of Delivery</option>
+                            <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                        </select>
+                </td>
+                <td>
+                        <button type="submit" class="btn">Update</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

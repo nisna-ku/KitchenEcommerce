@@ -2,7 +2,7 @@ from django import forms
 
 from django.contrib.auth.forms import UserCreationForm
 
-from kitchen.models import User,Category,Product,Order,OrderItem,ReviewModel
+from kitchen.models import User,Category,Product,Order,OrderItem,ReviewModel,DeliveryPerson
 
 
 # signup form
@@ -51,7 +51,7 @@ class OrderForm(forms.ModelForm):
 
         model = Order 
 
-        fields = ["address","phone","payment_method"]
+        fields = ["address","phone","payment_method","location"]
 
 #review form
 
@@ -66,3 +66,11 @@ class ReviewForm(forms.ModelForm):
             'review_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'images': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }    
+
+class DeliveryForm(forms.ModelForm):
+
+    class Meta:
+        model = DeliveryPerson
+        fields = ['phone_number_1','phone_number_2','address','location']
+
+   

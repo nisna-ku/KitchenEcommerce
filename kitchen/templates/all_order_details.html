@@ -137,7 +137,7 @@
 
                 <!-- Form to update order status -->
                 <td>
-                    <form method="POST" action="{% url 'update_order_status' order.id %}">
+                    <form method="POST" action="{% url 'update_order' order.id %}">
                         {% csrf_token %}
                         <select name="status" class="status-select">
                             <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>

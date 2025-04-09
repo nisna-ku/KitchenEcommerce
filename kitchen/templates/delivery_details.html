@@ -51,7 +51,7 @@
 
 
 <h2>Orders for Delivery</h2>
-<h3>{{request.user}}</h3>
+<h3>Hello ....{{request.user}}</h3>
 
 <table>
     <tr>
@@ -71,7 +71,7 @@
             <form action="{% url 'update_order_status' order.id  %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="status" value="Delivered">
-                <input type="text" name="delivery_person" value="{{request.user.id}}">
+                <input type="hidden" name="delivery_person" value="{{request.user.id}}">
                 <button type="submit">Mark as Delivered</button>
             </form>
         </td>
